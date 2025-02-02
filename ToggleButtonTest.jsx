@@ -33,51 +33,60 @@
 			my_palette.size = [300, 200];
 			my_palette.margins = paletteMargins;
 			my_palette.orientation = "column";
-			
-			var toggleButton = my_palette.add("customButton", [0,0,32, 20]);
-			var toggleButtonState = false;
-			
-			// TODO: Would be nice to animate?
 
-			toggleButton.onDraw = function() {
-				var g = this.graphics;
-
-				var blackBrush = g.newBrush(g.BrushType.SOLID_COLOR,[22/255,22/255,22/255,1]);
-				var blueBrush = g.newBrush(g.BrushType.SOLID_COLOR,[92/255,114/255,220/255,1]);
-				var lightBlueBrush = g.newBrush(g.BrushType.SOLID_COLOR,[138/255,158/255,255/255,1]);
-				var greyBrush = g.newBrush(g.BrushType.SOLID_COLOR, [43/255, 43/255, 43/255, 1], 1);
-				var lightGreyBrush = g.newBrush(g.BrushType.SOLID_COLOR, [217/255, 217/255, 217/255, 1], 1);
-				
-				var knobGap = 3;
-				var strokeThickness = 1;
-
-				// Draw stroke
-				g.newPath();
-				g.ellipsePath(0, 0, this.size.height, this.size.height);
-				g.rectPath(this.size.height/2,0, this.size.width - this.size.height, this.size.height);
-				g.ellipsePath(this.size.width - this.size.height, 0, this.size.height, this.size.height);
-				g.fillPath(toggleButtonState ? lightBlueBrush : greyBrush);
-				g.closePath();
-				
-				// Draw fill
-				g.newPath();
-				g.ellipsePath(strokeThickness, strokeThickness, this.size.height-(strokeThickness*2), this.size.height-(strokeThickness*2));
-				g.rectPath(this.size.height/2,strokeThickness, this.size.width - this.size.height, this.size.height-(strokeThickness*2));
-				g.ellipsePath(this.size.width - this.size.height + strokeThickness, strokeThickness, this.size.height - (strokeThickness*2), this.size.height - (strokeThickness*2));
-				g.fillPath(toggleButtonState ? blueBrush : blackBrush);
-				g.closePath();
-				
-				// Draw Knob
-				var falseX = knobGap;
-				var trueX = (this.size.width - this.size.height/2) - (knobGap * 2 + strokeThickness);
-				g.newPath();
-				g.ellipsePath(toggleButtonState ? trueX : falseX, knobGap, this.size.height-(knobGap*2), this.size.height-(knobGap*2));
-				g.fillPath(lightGreyBrush);
-				g.closePath();
-			}
+			createToggle(my_palette);
 			
-			toggleButton.onClick = function() {
-				toggleButtonState = !toggleButtonState;
+			function createToggle(parent) {
+				var toggleWidth = 32;
+				var toggleHeight = 20;
+				var toggleButton = my_palette.add("customButton", [0,0,toggleWidth, toggleHeight]);
+				toggleButton.state = false;
+
+				toggleButton.onDraw = function() {
+					var g = this.graphics;
+
+					var blackBrush = g.newBrush(g.BrushType.SOLID_COLOR,[22/255,22/255,22/255,1]);
+					var blueBrush = g.newBrush(g.BrushType.SOLID_COLOR,[92/255,114/255,220/255,1]);
+					var lightBlueBrush = g.newBrush(g.BrushType.SOLID_COLOR,[138/255,158/255,255/255,1]);
+					var greyBrush = g.newBrush(g.BrushType.SOLID_COLOR, [43/255, 43/255, 43/255, 1], 1);
+					var lightGreyBrush = g.newBrush(g.BrushType.SOLID_COLOR, [217/255, 217/255, 217/255, 1], 1);
+
+					var knobGap = 3;
+					var strokeThickness = 1;
+
+					// Draw stroke
+					g.newPath();
+					g.ellipsePath(0, 0, this.size.height, this.size.height);
+					g.rectPath(this.size.height/2,0, this.size.width - this.size.height, this.size.height);
+					g.ellipsePath(this.size.width - this.size.height, 0, this.size.height, this.size.height);
+					g.fillPath(toggleButton.state ? lightBlueBrush : greyBrush);
+					g.closePath();
+
+					// Draw fill
+					g.newPath();
+					g.ellipsePath(strokeThickness, strokeThickness, this.size.height-(strokeThickness*2), this.size.height-(strokeThickness*2));
+					g.rectPath(this.size.height/2,strokeThickness, this.size.width - this.size.height, this.size.height-(strokeThickness*2));
+					g.ellipsePath(this.size.width - this.size.height + strokeThickness, strokeThickness, this.size.height - (strokeThickness*2), this.size.height - (strokeThickness*2));
+					g.fillPath(toggleButton.state ? blueBrush : blackBrush);
+					g.closePath();
+
+					var falseX = knobGap;
+					var trueX = (this.size.width - this.size.height/2) - (knobGap * 2 + strokeThickness);
+
+					var knobPosition = toggleButton.state ? trueX : falseX;
+
+					// Draw Knob
+					g.newPath();
+					g.ellipsePath(knobPosition, knobGap, this.size.height-(knobGap*2), this.size.height-(knobGap*2));
+					g.fillPath(lightGreyBrush);
+					g.closePath();
+				}
+
+				toggleButton.onClick = function() {
+					toggleButton.state = !toggleButton.state;
+				}
+				
+				return toggleButton;
 			}
 			
 			my_palette.show();
