@@ -2,38 +2,6 @@
 	function EazeePalette(thisObj)
 	{
 		// This function adds the easing graph
-		function addEasingGraph(palette, currentDirectory)
-		{
-			var easeGraph = my_palette.add("customButton",[0,0,120,35]);
-			// Graph Drawing
-			easeGraph.text = "My Fancy Button";
-
-			easeGraph.onDraw = function() {
-				var g = this.graphics;
-				var blueBrush = g.newBrush(g.BrushType.SOLID_COLOR,[0/255,152/255,255/255,1]);
-				var blackPen = g.newPen(g.PenType.SOLID_COLOR,[0/255,0/255,0/255,1],1);
-				var textSize = g.measureString(button.text);
-				drawRoundedRect(g,blueBrush,this.size.width,this.size.height,15,0,0);
-				g.drawString(easeGraph.text,blackPen,(this.size.width-textSize.width)/2,(this.size.height-textSize.height)/2);
-			}
-			//
-			// var newButton = palette.add("button", buttonRect, buttonLabel);
-			//
-			// // JavaScript has an unusual but useful bit of functionality.
-			// // You can just assign a value to a new variable name and JS will
-			// // store it for you. The lines below create new variables named
-			// // scriptName and currentDirectory within newButton, and sets them
-			// // to buttonScriptName and myCurrentDirectory.
-			// // Later, in the onButtonClick() callback, the button will first
-			// // re-establish the current directory, then load and
-			// // run that file.
-			// newButton.scriptFileName   = buttonScriptName;
-			// newButton.currentDirectory = buttonCurrentDirectory;
-			//
-			// newButton.onClick = onScriptButtonClick;
-			return easeGraph;
-		}
-		
 		function isSecurityPrefSet()
 		{
 			var securitySetting = app.preferences.getPrefAsLong("Main Pref Section", "Pref_SCRIPTING_FILE_NETWORK_SECURITY");
@@ -56,37 +24,74 @@
 			//
 			var myDirectory = Folder.current;
 			var eazeeDirectory = new Folder(myDirectory.absoluteURI);
-
-			// Horizontal Spacing variables
-			var left_margin_width    = 5;
-			var right_margin_width   = 5;
-			var between_button_width = 5;
-
-			// Width of buttons depends on platform and language
-			var button_width;
-			if (system.osName.indexOf("Windows") != -1) {
-				// Windows system has narrower buttons.
-				button_width = 120;
-			} else {
-				// Mac has wider buttons
-				button_width = 160;
-			}
-			if (app.language == Language.JAPANESE) {
-				// Add 20 pixels for japanese machines, default font is wider
-				button_width += 17;
-			}
-
-			var l_button_left  = left_margin_width;
-			var l_button_right = l_button_left + button_width;
-			var r_button_left  = l_button_right + between_button_width;
-			var r_button_right = r_button_left + button_width;
-			var palette_width  = r_button_right + right_margin_width;
+			
+			var paletteMargins = 4;
 
 			// Create and show a floating palette
 			//
-			var my_palette = new Window("palette","Eazee");
-			my_palette.bounds = [300,200,300+palette_width,285];
-			var easeGraph = addEasingGraph(my_palette, eazeeDirectory);
+			var my_palette = new Window("palette","Eazee", undefined, {resizeable: true});
+			my_palette.size = [350, 500];
+			my_palette.margins = paletteMargins;
+			my_palette.orientation = "column";
+			
+			var easeGraphGroup = my_palette.add("group", undefined, "EaseGraph");
+			easeGraphGroup.orientation = "column";
+			
+			var easeGraph = easeGraphGroup.add("customView", [0,0,my_palette.size[0] - paletteMargins * 2, my_palette.size[0] - paletteMargins * 2]);
+
+			// Create "Control Points" text input field below the customView
+			var controlPointsGroup = my_palette.add("group", undefined, "Control Points Input");
+			controlPointsGroup.orientation = "row";
+			var controlPointsLabel = controlPointsGroup.add("statictext", undefined, "Control Points:");
+			var controlPointsInput = controlPointsGroup.add("edittext", undefined, "0.50, 0.00, 0.50, 1.00", { multiline: false });
+
+			easeGraph.onDraw = function() {
+				var g = this.graphics;
+				drawGridBackground();
+				
+				function drawGridBackground() {
+					var easeGraphBackground = g.newBrush(g.BrushType.SOLID_COLOR,[22/255,22/255,22/255,1]);
+					var easeGraphOutline = g.newPen(g.PenType.SOLID_COLOR, [80/255, 80/255, 80/255, 1], 1);
+					
+					// Draw the background fill
+					g.newPath();
+					g.rectPath(0,0, easeGraph.size[0], easeGraph.size[0]);
+					g.fillPath(easeGraphBackground);
+					g.strokePath(easeGraphOutline);
+					g.closePath();
+					
+					// Draw the grid lines
+					var gridCells = 4;
+					// Iterate over the width and draw vertical lines
+					var cellSize = easeGraph.size[0] / gridCells;
+					for(var i=0; i < gridCells-1; i++) {
+						var xPosition = (i+1) * cellSize;
+						drawLine(g, xPosition, 0, xPosition, easeGraph.size[0], easeGraphOutline);
+					}
+					// Iterate over the height and draw horizontal lines
+					for(var i=0; i < gridCells-1; i++) {
+						var yPosition = (i+1) * cellSize;
+						drawLine(g, 0, yPosition, easeGraph.size[0], yPosition, easeGraphOutline);
+					}
+					
+					function drawLine(graphicsObject, startX, startY, endX, endY, lineStroke) {
+						graphicsObject.newPath();
+						graphicsObject.moveTo(startX, startY);
+						graphicsObject.lineTo(endX, endY);
+						graphicsObject.strokePath(lineStroke);
+						graphicsObject.closePath();
+					}
+				}
+			}
+			
+			// TODO: I think later we need to put the ease graph into a group/panel and set that minimum/perfered size so that if the palette is smaller we can prevent the ease graph from becoming too small!
+
+			// Resize event handler
+			my_palette.onResizing = my_palette.onResize = function () {
+				var easeGraphSize =  my_palette.size[0] - paletteMargins * 2;
+				easeGraph.size.width = easeGraphSize;
+				easeGraph.size.height = easeGraphSize;
+			};
 			
 			my_palette.show();
 		} else {
